@@ -9,8 +9,8 @@
     "lint": "node node_modules/eslint/bin/eslint.js"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
     "@mlc-ai/web-llm": "^0.2.84",
-    "@xenova/transformers": "^2.17.2",
     "clsx": "^2.1.1",
     "dexie": "^4.4.4",
     "dexie-react-hooks": "^4.4.0",

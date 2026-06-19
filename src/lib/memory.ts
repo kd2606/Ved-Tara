@@ -1,5 +1,8 @@
 // src/lib/memory.ts
-import { pipeline } from '@xenova/transformers';
+import { pipeline, env } from '@huggingface/transformers';
+
+// Important for Next.js and Turbopack to prevent it from looking for local model paths
+env.allowLocalModels = false;
 import { fetchLongTermMemories, DecryptedMemory, Persona } from './db';
 
 const MODEL_NAME = 'Xenova/all-MiniLM-L6-v2';
