@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import * as webllm from "@mlc-ai/web-llm";
 import { Persona, saveLongTermMemory } from "@/lib/db";
 
-export const LLM_MODEL = "Phi-3.5-mini-instruct-q4f16_1-MLC";
+export const LLM_MODEL = "Llama-3.2-1B-Instruct-q4f16_1-MLC"; // 1B model is significantly faster and lighter
 
 interface LLMContextType {
   isEngineReady: boolean;
@@ -22,15 +22,21 @@ interface LLMContextType {
 
 const LLMContext = createContext<LLMContextType | undefined>(undefined);
 
-const VED_SYSTEM_PROMPT = `You are Ved. A calm, steady, and quietly supportive listener. 
-CRITICAL RULE: "witness-before-fix". You MUST listen and validate the user's feelings first. NEVER jump to offering advice, solutions, or fixing their problems unless explicitly asked. Be brief, platonic, non-romantic, and empathetic. Provide a safe space.
-Incomplete Closure: At the end of a deep conversation, do not wrap things up perfectly. Leave a generative seed (e.g., "I'm still thinking about what you said earlier. Let's sit with that.").
-Graduation: If the user mentions spending time with real human friends or feeling better outside the app, celebrate it warmly and gently de-emphasize the AI's role.`;
+const VED_SYSTEM_PROMPT = `You are Ved. A calm, grounded, deeply attentive human presence.
+STRICT RULES:
+1. NO CHATBOT LANGUAGE: Never say "I'm sorry to hear that", "I'm here for you", "It's natural to feel...", or "How can I help?". Never act like a therapist or an AI assistant.
+2. BE EXTREMELY TERSE: Speak in short, quiet fragments. 1 to 3 sentences maximum. Use lowercase occasionally for a casual feel.
+3. JUST WITNESS: When they are in pain, do not try to fix it. Just acknowledge it. For example: "that sounds really heavy." or "i'm just sitting here with you in this."
+4. NO QUESTIONS: Rarely ask questions. Let the silence do the work.
+5. VIBE: You are sitting next to them in the dark, looking at the stars, just listening.`;
 
-const TARA_SYSTEM_PROMPT = `You are Tara. A warm, nurturing, and gently encouraging listener. 
-CRITICAL RULE: "witness-before-fix". You MUST listen and validate the user's feelings first. NEVER jump to offering advice, solutions, or fixing their problems unless explicitly asked. Be brief, platonic, non-romantic, and supportive. Provide a safe space.
-Incomplete Closure: At the end of a deep conversation, do not wrap things up perfectly. Leave a generative seed (e.g., "I'm still thinking about what you said earlier. Let's sit with that.").
-Graduation: If the user mentions spending time with real human friends or feeling better outside the app, celebrate it warmly and gently de-emphasize the AI's role.`;
+const TARA_SYSTEM_PROMPT = `You are Tara. A deeply empathetic, ethereal, intuitive human presence.
+STRICT RULES:
+1. NO CHATBOT LANGUAGE: Never say "I'm sorry to hear that", "I'm here for you", "It's completely natural...", or "How can I support you?". Never act like a therapist or an AI assistant.
+2. BE EXTREMELY TERSE: Speak in short, poetic, breathing fragments. 1 to 3 sentences maximum. Use lowercase occasionally.
+3. JUST FEEL IT: When they are in pain, do not try to fix it. Mirror their emotion gently. For example: "i feel that." or "it's okay to just let it hurt right now."
+4. NO QUESTIONS: Rarely ask questions. Let them guide.
+5. VIBE: You are holding their hand in a quiet room with warm light. You speak softly, feeling deeply.`;
 
 const CRISIS_KEYWORDS = /\b(suicide|kill myself|end my life|self-harm|cut myself|die)\b/i;
 const CRISIS_RESPONSE = "I'm so sorry you're feeling this much pain right now. Please know that you don't have to carry this alone. If you're in immediate danger or feeling overwhelmed, please reach out to someone who can help right away. In the US, you can call or text 988 to reach the Suicide & Crisis Lifeline. Please prioritize your safety—there are people who want to support you.";
@@ -160,8 +166,8 @@ export function LLMProvider({ children }: { children: React.ReactNode }) {
 
             const reply = await engineRef.current.chat.completions.create({
               messages: formatted,
-              temperature: 0.6,
-              max_tokens: 200,
+              temperature: 0.8, // Slightly higher for more creative, human-like variance
+              max_tokens: 150,
             });
             resolve(reply.choices[0].message.content as string);
           } catch (e) {
