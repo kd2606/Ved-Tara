@@ -232,10 +232,7 @@ export default function ChatScreen() {
       {/* Top Navbar */}
       <header className="z-10 flex w-full items-center justify-between px-8 py-6 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md">
         <div className="flex items-center gap-4">
-          <div className="relative w-6 h-6 flex items-center justify-center">
-            <CompanionOrb isProcessing={isProcessing} className="scale-75 absolute" />
-          </div>
-          <span className="font-serif italic text-xl text-white/90 tracking-wide">Ved &amp; Tara</span>
+          <span className="font-serif italic text-2xl text-white/90 tracking-wide pl-2">Ved &amp; Tara</span>
         </div>
 
         <nav className="hidden md:flex gap-12 text-[10px] uppercase tracking-widest font-medium text-white/40">
@@ -296,11 +293,11 @@ export default function ChatScreen() {
           <div className="relative flex items-center bg-[#141414] rounded-full border border-white/5 shadow-2xl px-4 py-3 group focus-within:border-white/10 transition-colors">
             <button 
               type="button" 
-              onClick={() => activePersona !== "tara" ? togglePersona() : togglePersona()}
-              className="text-white/30 hover:text-white transition-colors"
-              title="Toggle Persona"
+              onClick={() => togglePersona()}
+              className={`text-[10px] uppercase tracking-widest font-bold transition-colors px-2 mr-2 border-r border-white/10 pr-4 ${activePersona === 'ved' ? 'text-white/70 hover:text-white' : 'text-white/70 hover:text-white'}`}
+              title={`Switch to ${activePersona === 'ved' ? 'Tara' : 'Ved'}`}
             >
-              <Plus className="w-5 h-5" />
+              {activePersona}
             </button>
             <input
               type="text"
