@@ -53,6 +53,7 @@ export default function ChatScreen() {
   
   const [sessionMemories, setSessionMemories] = useState<string[]>([]);
   const [waitingMessage, setWaitingMessage] = useState<DecryptedWaitingMessage | null>(null);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   
   const summarizedCountRef = useRef<number>(0);
 
@@ -161,21 +162,14 @@ export default function ChatScreen() {
     }
   };
 
+  const handleResetSpace = async () => {
+    await wipeDatabase();
+    window.location.reload();
+  };
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     const text = inputValue.trim();
-    
-    // Developer Override: Wipe Corrupted Database
-    if (text === "--PURGE--") {
-      if (confirm("Are you sure you want to permanently wipe your local companion memory?")) {
-        await wipeDatabase();
-        window.location.reload();
-      }
-      setInputValue("");
-      return;
-    }
-
     if (!text || isProcessing || !isEngineReady) return;
     setInputValue("");
     await processMessage(text, activePersona);
@@ -253,13 +247,59 @@ export default function ChatScreen() {
           <button className="hover:text-white transition-colors">Essence</button>
         </nav>
 
-        <button 
-          onClick={handleEndSession}
-          className="text-[10px] uppercase tracking-widest font-bold text-white/40 hover:text-white transition-colors"
-        >
-          END SESSION
-        </button>
+        <div className="flex items-center gap-6">
+          <button 
+            onClick={() => setIsResetModalOpen(true)}
+            className="text-[10px] uppercase tracking-widest font-bold text-white/40 hover:text-white transition-colors"
+          >
+            RESET SPACE
+          </button>
+          <button 
+            onClick={handleEndSession}
+            className="text-[10px] uppercase tracking-widest font-bold text-white/40 hover:text-white transition-colors"
+          >
+            END SESSION
+          </button>
+        </div>
       </header>
+
+      {/* Reset Confirmation Modal */}
+      <AnimatePresence>
+        {isResetModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#141414]/90 border border-white/10 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center"
+            >
+              <h3 className="text-xl font-serif italic text-white/90 mb-4">Restart your space?</h3>
+              <p className="text-sm text-white/60 leading-relaxed mb-8 font-light">
+                This will clear your local cache, wipe current memories, and reload the engine. Use this if you want a fresh start or if the space feels stuck.
+              </p>
+              <div className="flex items-center justify-center gap-4">
+                <button 
+                  onClick={() => setIsResetModalOpen(false)}
+                  className="px-6 py-2 text-xs uppercase tracking-widest font-bold text-white/50 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleResetSpace}
+                  className="px-6 py-2 text-xs uppercase tracking-widest font-bold text-rose-500/80 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors border border-rose-500/20"
+                >
+                  Reset
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content Area */}
       <div className="z-10 flex flex-1 flex-col items-center w-full max-w-4xl overflow-hidden relative">
