@@ -233,7 +233,7 @@ export default function ChatScreen() {
       <header className="z-10 flex w-full items-center justify-between px-8 py-6 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <div className="relative w-6 h-6 flex items-center justify-center">
-            <CompanionOrb isProcessing={isProcessing} className="scale-[0.25] absolute" />
+            <CompanionOrb isProcessing={isProcessing} className="scale-75 absolute" />
           </div>
           <span className="font-serif italic text-xl text-white/90 tracking-wide">Ved &amp; Tara</span>
         </div>
