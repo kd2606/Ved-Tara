@@ -62,18 +62,7 @@ export function OnboardingFlow({ progress, onComplete, startDownload }: Onboardi
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-transparent">
-      <div className="relative z-10 flex flex-col items-center w-full max-w-2xl px-6">
-        
-        <motion.div
-          animate={{
-            scale: phase === 0 ? 0.8 : 1,
-            opacity: phase === 0 ? 0.3 : phase === 1 ? 0.5 : phase === 2 ? 0.8 : 1
-          }}
-          transition={{ duration: 2 }}
-          className="mb-12"
-        >
-          <CompanionOrb isProcessing={phase > 0 && phase < 5} className="scale-150" />
-        </motion.div>
+      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-2xl px-6 h-full">
 
         <div className="h-48 flex items-center justify-center text-center w-full">
           <AnimatePresence mode="wait">
