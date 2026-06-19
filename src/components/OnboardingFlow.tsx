@@ -10,7 +10,7 @@ import { ArrowRight } from "lucide-react";
 const instrumentSerif = Instrument_Serif({ weight: "400", style: "italic", subsets: ["latin"] });
 
 // Ultra-premium easing curve (fluid, editorial feel)
-const premiumEase = [0.16, 1, 0.3, 1];
+const premiumEase = [0.16, 1, 0.3, 1] as const;
 
 // Staggered container variants
 const containerVariants = {
