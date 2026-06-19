@@ -163,8 +163,20 @@ export default function ChatScreen() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim() || isProcessing || !isEngineReady) return;
+    
     const text = inputValue.trim();
+    
+    // Developer Override: Wipe Corrupted Database
+    if (text === "--PURGE--") {
+      if (confirm("Are you sure you want to permanently wipe your local companion memory?")) {
+        await wipeDatabase();
+        window.location.reload();
+      }
+      setInputValue("");
+      return;
+    }
+
+    if (!text || isProcessing || !isEngineReady) return;
     setInputValue("");
     await processMessage(text, activePersona);
   };
