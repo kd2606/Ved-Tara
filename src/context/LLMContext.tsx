@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import * as webllm from "@mlc-ai/web-llm";
 import { Persona, saveLongTermMemory } from "@/lib/db";
 
-export const LLM_MODEL = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC"; // Highly optimized for Indian languages (Hindi, Marathi, etc) while staying extremely fast
+export const LLM_MODEL = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC"; // Ultra-lightweight 0.5B model for instant responses
 
 interface LLMContextType {
   isEngineReady: boolean;
