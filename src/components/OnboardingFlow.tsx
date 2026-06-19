@@ -143,51 +143,85 @@ export function OnboardingFlow({ progress, onComplete, startDownload }: Onboardi
                 Choose your companion.
               </motion.h2>
 
-              <div className="flex gap-6 w-full max-w-2xl justify-center">
+              <div className="flex gap-6 w-full max-w-2xl justify-center relative">
                 {/* VED CARD */}
                 <motion.button
                   variants={cardVariants}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: activePersona === "ved" ? 1 : 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setActivePersona("ved")}
-                  className={`relative flex flex-col items-center justify-center w-64 h-64 border transition-colors duration-500 group ${
-                    activePersona === "ved" 
-                      ? "bg-[#141414] border-white/30 shadow-[0_0_40px_rgba(255,255,255,0.03)]" 
-                      : "bg-[#0f0f0f] border-white/5 hover:border-white/10"
-                  }`}
+                  animate={{ 
+                    opacity: activePersona === "ved" ? 1 : 0.3,
+                    filter: activePersona === "ved" ? "blur(0px)" : "blur(2px)",
+                    borderColor: activePersona === "ved" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)"
+                  }}
+                  transition={{ duration: 0.8, ease: premiumEase }}
+                  className="relative flex flex-col items-center justify-center w-64 h-64 border bg-[#0f0f0f] group overflow-hidden"
                 >
-                  <div className={`text-2xl tracking-[0.4em] font-light transition-colors duration-700 ${activePersona === "ved" ? "text-white" : "text-white/40 group-hover:text-white/70"}`}>
-                    VED
-                  </div>
-                  <div className="text-[10px] italic font-serif text-white/30 mt-4 tracking-widest transition-opacity duration-700">
-                    The Stillness.
-                  </div>
+                  {/* Sliding Active Background */}
                   {activePersona === "ved" && (
-                    <motion.div layoutId="selection-border" className="absolute inset-0 border border-white/20 pointer-events-none" transition={{duration: 0.8, ease: premiumEase}} />
+                    <motion.div 
+                      layoutId="active-card-bg" 
+                      className="absolute inset-0 pointer-events-none" 
+                      transition={{ type: "spring", stiffness: 70, damping: 20 }}
+                    >
+                      <div className="absolute inset-0 bg-[#1a1a1a]" />
+                      <div className="absolute inset-[-50%] bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_0%,transparent_70%)] opacity-50" />
+                    </motion.div>
                   )}
+
+                  <motion.div 
+                    animate={{ y: activePersona === "ved" ? -5 : 0 }}
+                    transition={{ duration: 0.8, ease: premiumEase }}
+                    className="relative z-10 flex flex-col items-center"
+                  >
+                    <div className={`text-2xl tracking-[0.4em] font-light transition-colors duration-700 ${activePersona === "ved" ? "text-white" : "text-white/40 group-hover:text-white/70"}`}>
+                      VED
+                    </div>
+                    <div className="text-[10px] italic font-serif text-white/40 mt-4 tracking-widest transition-opacity duration-700">
+                      The Stillness.
+                    </div>
+                  </motion.div>
                 </motion.button>
 
                 {/* TARA CARD */}
                 <motion.button
                   variants={cardVariants}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: activePersona === "tara" ? 1 : 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setActivePersona("tara")}
-                  className={`relative flex flex-col items-center justify-center w-64 h-64 border transition-colors duration-500 group ${
-                    activePersona === "tara" 
-                      ? "bg-[#141414] border-white/30 shadow-[0_0_40px_rgba(255,255,255,0.03)]" 
-                      : "bg-[#0f0f0f] border-white/5 hover:border-white/10"
-                  }`}
+                  animate={{ 
+                    opacity: activePersona === "tara" ? 1 : 0.3,
+                    filter: activePersona === "tara" ? "blur(0px)" : "blur(2px)",
+                    borderColor: activePersona === "tara" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)"
+                  }}
+                  transition={{ duration: 0.8, ease: premiumEase }}
+                  className="relative flex flex-col items-center justify-center w-64 h-64 border bg-[#0f0f0f] group overflow-hidden"
                 >
-                  <div className={`text-2xl tracking-[0.4em] font-light transition-colors duration-700 ${activePersona === "tara" ? "text-white" : "text-white/40 group-hover:text-white/70"}`}>
-                    TARA
-                  </div>
-                  <div className="text-[10px] italic font-serif text-white/30 mt-4 tracking-widest transition-opacity duration-700">
-                    The Essence.
-                  </div>
+                  {/* Sliding Active Background */}
                   {activePersona === "tara" && (
-                    <motion.div layoutId="selection-border" className="absolute inset-0 border border-white/20 pointer-events-none" transition={{duration: 0.8, ease: premiumEase}} />
+                    <motion.div 
+                      layoutId="active-card-bg" 
+                      className="absolute inset-0 pointer-events-none" 
+                      transition={{ type: "spring", stiffness: 70, damping: 20 }}
+                    >
+                      <div className="absolute inset-0 bg-[#1a1a1a]" />
+                      <div className="absolute inset-[-50%] bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_0%,transparent_70%)] opacity-50" />
+                    </motion.div>
                   )}
+
+                  <motion.div 
+                    animate={{ y: activePersona === "tara" ? -5 : 0 }}
+                    transition={{ duration: 0.8, ease: premiumEase }}
+                    className="relative z-10 flex flex-col items-center"
+                  >
+                    <div className={`text-2xl tracking-[0.4em] font-light transition-colors duration-700 ${activePersona === "tara" ? "text-white" : "text-white/40 group-hover:text-white/70"}`}>
+                      TARA
+                    </div>
+                    <div className="text-[10px] italic font-serif text-white/40 mt-4 tracking-widest transition-opacity duration-700">
+                      The Essence.
+                    </div>
+                  </motion.div>
                 </motion.button>
               </div>
 
