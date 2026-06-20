@@ -173,6 +173,36 @@ export default function ChatScreen() {
     const text = inputValue.trim();
     if (!text || isProcessing || !isEngineReady) return;
     setInputValue("");
+    
+    // Crisis Keyword Interceptor (Bypasses LLM entirely)
+    const crisisRegex = /\b(suicide|kill myself|end it|die|mar jana|khatam kar|harm myself|sui-cide|suicid)\b/i;
+    if (crisisRegex.test(text)) {
+      setIsProcessing(true);
+      
+      const userMsg: DecryptedMessage = {
+        persona: activePersona,
+        role: 'user',
+        content: text,
+        timestamp: Date.now(),
+      };
+      await saveMessage(userMsg);
+      
+      const crisisText = "I am an AI, and I am deeply concerned about what you just shared. You are not alone, and there is support available right now. Please talk to a human professional immediately:\n\nVandrevala Foundation: 9999 666 555\nAASRA: 9820466726";
+      
+      const aiMsg: DecryptedMessage = {
+        persona: activePersona,
+        role: 'ai',
+        content: crisisText,
+        timestamp: Date.now() + 1,
+      };
+      await saveMessage(aiMsg);
+      
+      // Update UI immediately
+      setMessages(prev => [...prev, userMsg, aiMsg]);
+      setIsProcessing(false);
+      return;
+    }
+
     await processMessage(text, activePersona);
   };
 
