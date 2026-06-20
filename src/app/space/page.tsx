@@ -44,7 +44,8 @@ export default function ChatScreen() {
     queueSummarize, 
     queueExtractMemories,
     queueGenerateWaitingMessage, 
-    markUserActivity 
+    markUserActivity,
+    hardwareError
   } = useLLM();
   
   const [isProcessing, setIsProcessing] = useState(false);
@@ -373,45 +374,55 @@ export default function ChatScreen() {
 
       {/* Fixed Bottom Input Bar */}
       <div className="z-20 w-full max-w-3xl absolute bottom-0 left-1/2 -translate-x-1/2 pb-8 pt-10 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a] to-transparent">
-        <form onSubmit={handleSend} className="relative w-full px-4">
-          <div className="relative flex items-center bg-[#141414] rounded-full border border-white/5 shadow-2xl px-4 py-3 group focus-within:border-white/10 transition-colors">
-            <button 
-              type="button" 
-              onClick={() => togglePersona()}
-              className={`text-[10px] uppercase tracking-widest font-bold transition-colors px-2 mr-2 border-r border-white/10 pr-4 ${activePersona === 'ved' ? 'text-white/70 hover:text-white' : 'text-white/70 hover:text-white'}`}
-              title={`Switch to ${activePersona === 'ved' ? 'Tara' : 'Ved'}`}
-            >
-              {activePersona}
-            </button>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => {
-                setInputValue(e.target.value);
-                markUserActivity();
-              }}
-              placeholder={isEngineReady ? "Share what's on your mind..." : "Engine is initializing..."}
-              disabled={!isEngineReady || !!waitingMessage}
-              className="flex-1 bg-transparent border-none outline-none px-4 text-sm text-foreground/90 placeholder:text-white/20 font-light disabled:opacity-50"
-            />
-            <button
-              type="submit"
-              disabled={!inputValue.trim() || isProcessing || !isEngineReady || !!waitingMessage}
-              className={`p-2 rounded-full transition-all duration-300 ${
-                inputValue.trim() && !isProcessing && isEngineReady && !waitingMessage
-                  ? "bg-white/10 text-white hover:bg-white/20"
-                  : "bg-white/5 text-white/20"
-              }`}
-            >
-              <ArrowUp className="w-4 h-4" />
-            </button>
+        {hardwareError ? (
+          <div className="mx-4 bg-[#141414]/90 border border-rose-500/20 backdrop-blur-md rounded-2xl p-6 shadow-2xl text-center">
+            <p className="text-sm text-rose-500/90 leading-relaxed font-light">
+              {hardwareError}
+            </p>
           </div>
-        </form>
-        <div className="mt-4 text-center">
-          <p className="text-[10px] text-white/20 tracking-wider font-medium">
-            Ved &amp; Tara are listening.
-          </p>
-        </div>
+        ) : (
+          <>
+            <form onSubmit={handleSend} className="relative w-full px-4">
+              <div className="relative flex items-center bg-[#141414] rounded-full border border-white/5 shadow-2xl px-4 py-3 group focus-within:border-white/10 transition-colors">
+                <button 
+                  type="button" 
+                  onClick={() => togglePersona()}
+                  className={`text-[10px] uppercase tracking-widest font-bold transition-colors px-2 mr-2 border-r border-white/10 pr-4 ${activePersona === 'ved' ? 'text-white/70 hover:text-white' : 'text-white/70 hover:text-white'}`}
+                  title={`Switch to ${activePersona === 'ved' ? 'Tara' : 'Ved'}`}
+                >
+                  {activePersona}
+                </button>
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => {
+                    setInputValue(e.target.value);
+                    markUserActivity();
+                  }}
+                  placeholder={isEngineReady ? "Share what's on your mind..." : "Engine is initializing..."}
+                  disabled={!isEngineReady || !!waitingMessage}
+                  className="flex-1 bg-transparent border-none outline-none px-4 text-sm text-foreground/90 placeholder:text-white/20 font-light disabled:opacity-50"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputValue.trim() || isProcessing || !isEngineReady || !!waitingMessage}
+                  className={`p-2 rounded-full transition-all duration-300 ${
+                    inputValue.trim() && !isProcessing && isEngineReady && !waitingMessage
+                      ? "bg-white/10 text-white hover:bg-white/20"
+                      : "bg-white/5 text-white/20"
+                  }`}
+                >
+                  <ArrowUp className="w-4 h-4" />
+                </button>
+              </div>
+            </form>
+            <div className="mt-4 text-center">
+              <p className="text-[10px] text-white/20 tracking-wider font-medium">
+                Ved &amp; Tara are listening.
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </main>
   );

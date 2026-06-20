@@ -11,6 +11,7 @@ interface LLMContextType {
   loadingProgress: string;
   progressValue: number;
   sessionSummary: string;
+  hardwareError: string | null;
   generateResponse: (messages: webllm.ChatCompletionMessageParam[], persona: Persona, retrievedMemories: string[]) => Promise<string>;
   initEngine: () => Promise<void>;
   checkCrisisSafety: (text: string) => string | null;
@@ -49,6 +50,7 @@ export function LLMProvider({ children }: { children: React.ReactNode }) {
   const [loadingProgress, setLoadingProgress] = useState("");
   const [progressValue, setProgressValue] = useState(0);
   const [sessionSummary, setSessionSummary] = useState("");
+  const [hardwareError, setHardwareError] = useState<string | null>(null);
   
   const engineRef = useRef<webllm.WebWorkerMLCEngine | null>(null);
   
@@ -95,6 +97,19 @@ export function LLMProvider({ children }: { children: React.ReactNode }) {
 
   const initEngine = async (retryCount = 0) => {
     if (engineRef.current) return;
+    
+    // Hardware Pre-flight Check
+    const hasWebGPU = "gpu" in navigator;
+    const nav = navigator as any;
+    const hasEnoughRAM = !nav.deviceMemory || nav.deviceMemory >= 4;
+
+    if (!hasWebGPU || !hasEnoughRAM) {
+      setHardwareError(
+        "Your device's neural engine is not quite ready for this space. Ved & Tara require WebGPU and at least 4GB of RAM to run securely on-device. Please try opening this space on a desktop browser like Chrome or Edge."
+      );
+      return;
+    }
+
     setLoadingProgress("Initializing Web Worker...");
     try {
       const engine = await webllm.CreateWebWorkerMLCEngine(
@@ -290,6 +305,7 @@ Session Summary: ${sessionSummary}`;
       loadingProgress, 
       progressValue, 
       sessionSummary, 
+      hardwareError,
       generateResponse, 
       initEngine, 
       checkCrisisSafety,
