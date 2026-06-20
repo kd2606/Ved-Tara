@@ -22,13 +22,14 @@ import {
   DecryptedWaitingMessage,
   wipeDatabase
 } from "@/lib/db";
+import { hasKey, clearKey } from "@/lib/crypto";
 import type { ChatCompletionMessageParam } from "@mlc-ai/web-llm";
 
 export default function ChatScreen() {
   const router = useRouter();
   
   useEffect(() => {
-    if (sessionStorage.getItem("vt_unlocked") !== "true") {
+    if (!hasKey()) {
       router.replace("/");
     }
   }, [router]);
@@ -187,6 +188,7 @@ export default function ChatScreen() {
       queueExtractMemories(activePersona);
       queueGenerateWaitingMessage(activePersona);
       alert("Session ended. I will remember our time today.");
+      clearKey();
       sessionStorage.removeItem("vt_unlocked");
       router.replace("/");
     }

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Instrument_Serif } from "next/font/google";
 import { getSetting, saveSetting, wipeDatabase } from "@/lib/db";
-import { hashPIN, generateRecoveryKey } from "@/lib/crypto";
+import { hashPIN, generateRecoveryKey, deriveKeyFromPIN } from "@/lib/crypto";
 
 const instrumentSerif = Instrument_Serif({ 
   weight: "400", 
@@ -81,7 +81,7 @@ export default function LandingPage() {
       const storedHash = await getSetting("vt_pin_hash");
       const inputHash = await hashPIN(pin);
       if (storedHash === inputHash) {
-        sessionStorage.setItem("vt_unlocked", "true");
+        await deriveKeyFromPIN(pin);
         router.push("/space");
       } else {
         triggerError("Incorrect Space Key.");
@@ -89,6 +89,8 @@ export default function LandingPage() {
     } else {
       const hash = await hashPIN(pin);
       await saveSetting("vt_pin_hash", hash);
+      await deriveKeyFromPIN(pin);
+      
       const recKey = generateRecoveryKey();
       const recHash = await hashPIN(recKey);
       await saveSetting("vt_recovery_hash", recHash);
@@ -120,14 +122,12 @@ export default function LandingPage() {
   const handleStartFresh = async () => {
     if (eraseInput === "ERASE") {
       await wipeDatabase();
-      localStorage.removeItem("vt_crypto_key");
       sessionStorage.clear();
       window.location.reload();
     }
   };
 
   const handleGoToSpace = () => {
-    sessionStorage.setItem("vt_unlocked", "true");
     router.push("/space");
   };
 

@@ -1,38 +1,57 @@
 // src/lib/crypto.ts
-export async function getOrCreateKey(): Promise<CryptoKey> {
-  const storedKey = localStorage.getItem("vt_crypto_key");
-  if (storedKey) {
-    const jwk = JSON.parse(storedKey);
-    return await window.crypto.subtle.importKey(
-      "jwk",
-      jwk,
-      { name: "AES-GCM" },
-      true,
-      ["encrypt", "decrypt"]
-    );
-  }
+let inMemoryKey: CryptoKey | null = null;
 
-  // Generate a new key if none exists
-  const newKey = await window.crypto.subtle.generateKey(
+export const hasKey = (): boolean => {
+  return inMemoryKey !== null;
+};
+
+export const clearKey = (): void => {
+  inMemoryKey = null;
+};
+
+export async function deriveKeyFromPIN(pin: string): Promise<void> {
+  const encoder = new TextEncoder();
+  const keyMaterial = await window.crypto.subtle.importKey(
+    "raw",
+    encoder.encode(pin),
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits", "deriveKey"]
+  );
+
+  // We use a static salt to ensure the key is deterministic for the same PIN
+  const salt = encoder.encode("VedTaraSpaceKeySalt");
+
+  inMemoryKey = await window.crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: salt,
+      iterations: 100000,
+      hash: "SHA-256"
+    },
+    keyMaterial,
     { name: "AES-GCM", length: 256 },
-    true,
+    false, // Must not be extractable
     ["encrypt", "decrypt"]
   );
 
-  const jwk = await window.crypto.subtle.exportKey("jwk", newKey);
-  localStorage.setItem("vt_crypto_key", JSON.stringify(jwk));
-  
-  return newKey;
+  // Clean up any old vulnerable key that might exist
+  if (typeof localStorage !== "undefined") {
+    localStorage.removeItem("vt_crypto_key");
+  }
 }
 
 export async function encryptText(text: string): Promise<{ cipherText: string; iv: string }> {
-  const key = await getOrCreateKey();
+  if (!inMemoryKey) {
+    throw new Error("Encryption key not found. Please unlock the space.");
+  }
+  
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
   const encodedText = new TextEncoder().encode(text);
 
   const encrypted = await window.crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
-    key,
+    inMemoryKey,
     encodedText
   );
 
@@ -44,7 +63,9 @@ export async function encryptText(text: string): Promise<{ cipherText: string; i
 }
 
 export async function decryptText(cipherText: string, ivStr: string): Promise<string> {
-  const key = await getOrCreateKey();
+  if (!inMemoryKey) {
+    throw new Error("Encryption key not found. Please unlock the space.");
+  }
   
   // Convert Base64 back to Uint8Array
   const encryptedBytes = new Uint8Array(atob(cipherText).split("").map((c) => c.charCodeAt(0)));
@@ -52,7 +73,7 @@ export async function decryptText(cipherText: string, ivStr: string): Promise<st
 
   const decrypted = await window.crypto.subtle.decrypt(
     { name: "AES-GCM", iv },
-    key,
+    inMemoryKey,
     encryptedBytes
   );
 
