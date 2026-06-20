@@ -132,116 +132,103 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen bg-[#050505] text-[#f5f0e8] overflow-hidden font-sans">
-      {/* Overlay Noise */}
-      <svg className="fixed top-0 left-0 w-screen h-screen pointer-events-none z-50 opacity-[0.04] mix-blend-overlay" xmlns="http://www.w3.org/2000/svg">
-        <filter id="noiseFilter">
-          <feTurbulence baseFrequency="0.8" numOctaves={3} stitchTiles="stitch" type="fractalNoise" />
-        </filter>
-        <rect filter="url(#noiseFilter)" height="100%" width="100%" />
-      </svg>
-
-      {/* Aurora Background */}
-      <motion.div 
-        className="absolute inset-[-20%] z-0 opacity-30 blur-[120px]"
-        style={{
-          background: `
-            radial-gradient(circle at 30% 20%, #0d9488 0%, transparent 40%),
-            radial-gradient(circle at 70% 30%, #4338ca 0%, transparent 45%),
-            radial-gradient(circle at 40% 80%, #fb923c 0%, transparent 40%)
-          `
-        }}
-        animate={{ scale: [1, 1.1], x: ["0%", "-2%"], y: ["0%", "2%"] }}
-        transition={{ duration: 20, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
-      />
-
+    <div className="relative flex flex-col items-center justify-start min-h-screen bg-[#0A0A0A] text-[#E0E0E0] overflow-y-auto overflow-x-hidden font-sans">
+      
       {/* Header */}
-      <header className="fixed top-0 left-0 w-full p-6 flex justify-between items-center z-40">
-        <div className={`${instrumentSerif.className} text-2xl text-white/90 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]`}>
+      <header className="w-full p-6 flex justify-between items-center z-40 max-w-5xl mx-auto">
+        <div className={`${instrumentSerif.className} text-3xl text-white tracking-wide`}>
           Ved &amp; Tara
         </div>
-        <div className="bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs text-white/70 backdrop-blur-md">
+        <div className="border border-[#333333] rounded-full px-4 py-1.5 text-[10px] tracking-widest text-white/50 uppercase">
           On-Device Space
         </div>
       </header>
 
-      {/* Main Content */}
-      <motion.main 
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.5, ease: [0.0, 0.0, 0.2, 1] }}
-        className="relative z-20 flex flex-col items-center text-center px-4 w-full max-w-5xl mt-12"
-      >
-        <h1 className={`${instrumentSerif.className} text-5xl md:text-7xl text-white mb-6 font-normal`}>
-          Your mind's quiet place.
-        </h1>
-        <p className="text-lg text-white/60 max-w-xl mx-auto mb-16 font-light leading-relaxed">
-          Meet Ved &amp; Tara. An empathetic AI confidant that listens to understand, not to fix. Running entirely on your device.
-        </p>
+      <main className="w-full max-w-4xl mx-auto px-6 pb-32 flex flex-col items-start text-left mt-16 md:mt-24 space-y-32">
+        
+        {/* Section 1: Hero & The Vault */}
+        <section className="w-full flex flex-col items-start">
+          <h1 className={`${instrumentSerif.className} text-6xl md:text-8xl text-white mb-6 font-normal tracking-tight`}>
+            Ved &amp; Tara.
+          </h1>
+          <p className="text-xl md:text-2xl text-white/80 max-w-2xl mb-6 font-light leading-snug">
+            The first AI companion physically incapable of betraying you.
+          </p>
+          <p className="text-sm text-white/50 max-w-xl mb-12 font-light leading-relaxed">
+            A 100% on-device, zero-cloud emotional safe space. Your most vulnerable conversations are mathematically encrypted and never leave your screen.
+          </p>
 
-        {/* Space Key Section */}
-        {hasPin !== null && (
-          <div className="mb-20">
-            <div className="text-xs tracking-widest uppercase text-white/40 mb-4">
-              {hasPin ? "Enter your Space Key" : "Create your Space Key"}
+          {/* Space Key Section */}
+          {hasPin !== null && (
+            <div className="w-full max-w-sm border border-[#333333] p-8 bg-[#111111]">
+              <div className="text-[10px] tracking-widest uppercase text-white/40 mb-6">
+                {hasPin ? "Enter your Space Key" : "Create your Space Key"}
+              </div>
+              <motion.div 
+                animate={shake ? { x: [-10, 10, -10, 10, 0] } : {}}
+                transition={{ duration: 0.4 }}
+                className="flex gap-4"
+              >
+                {pinDigits.map((digit, i) => (
+                  <input
+                    key={i}
+                    ref={inputRefs[i]}
+                    type="password"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handlePinChange(i, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(i, e)}
+                    className="w-14 h-14 bg-[#0A0A0A] border border-[#333333] text-white text-xl text-center focus:ring-0 focus:border-white focus:bg-[#111111] transition-colors outline-none rounded-none"
+                  />
+                ))}
+              </motion.div>
+              {errorMsg && <p className="text-red-500 text-xs mt-6 tracking-wider uppercase">{errorMsg}</p>}
+              
+              <div className="mt-8 pt-6 border-t border-[#333333]">
+                <button 
+                  onClick={() => setModalState(modalState === "forgot" ? "none" : "forgot")}
+                  className="text-[10px] text-white/30 hover:text-white transition-colors uppercase tracking-widest"
+                >
+                  Forgot Key or Start Fresh?
+                </button>
+              </div>
             </div>
-            <motion.div 
-              animate={shake ? { x: [-10, 10, -10, 10, 0] } : {}}
-              transition={{ duration: 0.4 }}
-              className="flex gap-4 justify-center"
-            >
-              {pinDigits.map((digit, i) => (
-                <input
-                  key={i}
-                  ref={inputRefs[i]}
-                  type="password"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handlePinChange(i, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(i, e)}
-                  className="w-16 h-16 bg-white/5 backdrop-blur-xl border border-white/10 text-white text-2xl text-center rounded-2xl focus:ring-0 focus:bg-white/10 focus:border-white/30 focus:shadow-[0_0_20px_rgba(255,255,255,0.1)] outline-none transition-all duration-300"
-                />
-              ))}
-            </motion.div>
-            {errorMsg && <p className="text-red-400 text-xs mt-4 tracking-wider">{errorMsg}</p>}
-          </div>
-        )}
+          )}
+        </section>
 
-        {/* Product Specifications Badges */}
-        <div className="flex flex-col md:flex-row gap-4 justify-center items-center w-full">
-          <div className="flex items-center gap-3 bg-white/[0.03] border border-white/5 backdrop-blur-md rounded-full px-5 py-2.5">
-            <span className="text-lg">🔒</span>
-            <div className="text-left">
-              <div className="text-sm text-white/80 font-medium">AES-GCM Encryption</div>
-              <div className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Your data never leaves</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 bg-white/[0.03] border border-white/5 backdrop-blur-md rounded-full px-5 py-2.5">
-            <span className="text-lg">⚡</span>
-            <div className="text-left">
-              <div className="text-sm text-white/80 font-medium">Phi-3.5 Neural Engine</div>
-              <div className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Local AI</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 bg-white/[0.03] border border-white/5 backdrop-blur-md rounded-full px-5 py-2.5">
-            <span className="text-lg">🚫</span>
-            <div className="text-left">
-              <div className="text-sm text-white/80 font-medium">Zero-Server Architecture</div>
-              <div className="text-[10px] text-white/40 uppercase tracking-wider mt-0.5">Absolute Privacy</div>
-            </div>
-          </div>
-        </div>
-      </motion.main>
+        {/* Section 2: The Aim */}
+        <section className="w-full border-t border-[#333333] pt-12">
+          <h2 className="text-xs uppercase tracking-widest text-white/40 mb-6">The Aim</h2>
+          <p className="text-2xl md:text-3xl text-white/90 font-light leading-relaxed max-w-3xl">
+            To provide a judgment-free, emotionally intelligent sanctuary. We believe that true empathy shouldn't come at the cost of your digital privacy.
+          </p>
+        </section>
 
-      {/* Footer link */}
-      <div className="absolute bottom-8 z-40">
-        <button 
-          onClick={() => setModalState(modalState === "forgot" ? "none" : "forgot")}
-          className="text-xs text-white/30 hover:text-white/70 transition-colors uppercase tracking-widest font-light"
-        >
-          Forgot Key or Start Fresh?
-        </button>
-      </div>
+        {/* Section 3: Target Audience & Age Category */}
+        <section className="w-full border-t border-[#333333] pt-12">
+          <h2 className="text-xs uppercase tracking-widest text-white/40 mb-6">Who Is This For?</h2>
+          <p className="text-lg text-white/70 font-light leading-relaxed max-w-2xl">
+            Designed meticulously for modern Gen-Z and young professionals (Ages 16-30). Built for those who navigate high-stress lives, crave deep emotional connection, and demand absolute ownership of their data on premium devices.
+          </p>
+        </section>
+
+        {/* Section 4: The Endgame */}
+        <section className="w-full border-t border-[#333333] pt-12">
+          <h2 className="text-xs uppercase tracking-widest text-white/40 mb-6">The Endgame</h2>
+          <p className="text-lg text-white/70 font-light leading-relaxed max-w-2xl">
+            To prove that the future of AI is local. We are democratizing offline-first multimodal AI, bringing real-time voice, memory, and profound empathy directly to the edge, bypassing corporate cloud servers entirely.
+          </p>
+        </section>
+
+        {/* Section 5: About The Creator */}
+        <section className="w-full border-t border-[#333333] pt-12">
+          <h2 className="text-xs uppercase tracking-widest text-white/40 mb-6">About The Creator</h2>
+          <p className="text-lg text-white/70 font-light leading-relaxed max-w-2xl">
+            Engineered by <span className="text-white">Krrish Dewangan</span>, a computer science developer from Amity Raipur pushing the boundaries of local AI and privacy-first architecture. Ved &amp; Tara was born out of a passion for combining deep technical execution with genuine human empathy.
+          </p>
+        </section>
+
+      </main>
 
       {/* Authentication Modals for Recovery & Fresh Start */}
       <AnimatePresence>
@@ -250,22 +237,23 @@ export default function LandingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#0A0A0A] p-4"
           >
-            <div className="relative w-full max-w-md glass-panel p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center text-center">
+            <div className="relative w-full max-w-md bg-[#111111] p-10 border border-[#333333] flex flex-col items-start text-left">
               
               <button 
                 onClick={() => { setModalState("none"); setErrorMsg(""); }}
-                className="absolute top-4 right-6 text-foreground/40 hover:text-white text-xl"
+                className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors text-xl leading-none"
               >
                 &times;
               </button>
 
               {modalState === "show_recovery" && (
-                <div className="w-full space-y-6">
-                  <h2 className="text-xl font-light text-white tracking-wider">Recovery Key</h2>
-                  <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
-                    <p className="text-sm text-red-200/80 font-light mb-2">
+                <div className="w-full space-y-8">
+                  <h2 className="text-lg uppercase tracking-widest text-white">Recovery Key</h2>
+                  <div className="border border-rose-500/30 p-6 bg-[#0A0A0A]">
+                    <p className="text-xs text-rose-500/80 uppercase tracking-widest mb-4">Warning</p>
+                    <p className="text-sm text-white/60 font-light leading-relaxed mb-4">
                       Because your data is strictly local, we cannot reset your PIN if you lose it.
                     </p>
                     <p className="text-sm text-white/80 font-light">
@@ -273,47 +261,49 @@ export default function LandingPage() {
                     </p>
                   </div>
                   
-                  <div className="glass-panel py-4 px-2 rounded-xl border border-white/10">
-                    <code className="text-xl font-mono text-white tracking-widest">{generatedRecoveryKey}</code>
+                  <div className="py-6 px-4 bg-[#0A0A0A] border border-[#333333] text-center">
+                    <code className="text-2xl font-mono text-white tracking-[0.2em]">{generatedRecoveryKey}</code>
                   </div>
                   
                   <button 
                     onClick={handleGoToSpace}
-                    className="w-full bg-white/10 hover:bg-white/20 text-white rounded-xl py-3 tracking-widest text-sm transition-colors"
+                    className="w-full bg-white hover:bg-[#E0E0E0] text-black py-4 uppercase tracking-widest text-xs font-bold transition-colors"
                   >
-                    I HAVE SAVED IT
+                    I Have Saved It
                   </button>
                 </div>
               )}
 
               {modalState === "forgot" && (
-                <div className="w-full space-y-6">
-                  <h2 className="text-xl font-light text-white tracking-wider">Recover Access</h2>
-                  <p className="text-sm text-white/50 font-light">Enter your 12-character Recovery Key.</p>
+                <div className="w-full space-y-8">
+                  <div>
+                    <h2 className="text-lg uppercase tracking-widest text-white mb-2">Recover Access</h2>
+                    <p className="text-sm text-white/50 font-light">Enter your 12-character Recovery Key.</p>
+                  </div>
                   
                   <input
                     type="text"
                     value={recoveryKeyInput}
                     onChange={(e) => setRecoveryKeyInput(e.target.value)}
                     placeholder="VT-XXXX-XXXX-XXXX"
-                    className="w-full glass-panel bg-white/5 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-3 text-center font-mono text-lg text-white outline-none uppercase focus:border-white/40 transition-colors"
+                    className="w-full bg-[#0A0A0A] border border-[#333333] px-6 py-4 text-center font-mono text-xl text-white outline-none uppercase focus:border-white transition-colors"
                     autoFocus
                   />
                   
-                  {errorMsg && <p className="text-red-400 text-xs">{errorMsg}</p>}
+                  {errorMsg && <p className="text-rose-500 text-xs uppercase tracking-widest">{errorMsg}</p>}
                   
                   <button 
                     onClick={handleForgotKey}
                     disabled={recoveryKeyInput.length < 12}
-                    className="w-full bg-white/10 hover:bg-white/20 text-white rounded-xl py-3 tracking-widest text-sm transition-colors disabled:opacity-50"
+                    className="w-full bg-white hover:bg-[#E0E0E0] text-black py-4 uppercase tracking-widest text-xs font-bold transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
                   >
-                    VERIFY KEY
+                    Verify Key
                   </button>
 
-                  <div className="pt-4 border-t border-white/10 mt-4">
+                  <div className="pt-6 border-t border-[#333333] mt-8">
                     <button 
                       onClick={() => setModalState("fresh_start")}
-                      className="text-xs text-red-400/60 hover:text-red-400 tracking-wider"
+                      className="text-[10px] text-rose-500/60 hover:text-rose-500 uppercase tracking-widest transition-colors"
                     >
                       Lost both? Start Fresh.
                     </button>
@@ -322,14 +312,14 @@ export default function LandingPage() {
               )}
 
               {modalState === "fresh_start" && (
-                <div className="w-full space-y-6">
-                  <h2 className="text-xl font-light text-red-400 tracking-wider">Start Fresh</h2>
-                  <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-left">
-                    <p className="text-sm text-red-200/90 font-light">
+                <div className="w-full space-y-8">
+                  <h2 className="text-lg uppercase tracking-widest text-rose-500">Start Fresh</h2>
+                  <div className="border border-rose-500/30 p-6 bg-[#0A0A0A]">
+                    <p className="text-sm text-rose-500/90 font-light leading-relaxed">
                       Sometimes, letting go and starting over is exactly what we need.
                     </p>
-                    <p className="text-sm text-red-200/70 font-light mt-4">
-                      This will permanently erase your completely encrypted space. This action cannot be undone. If you are certain, please type <strong>ERASE</strong> below.
+                    <p className="text-sm text-white/60 font-light leading-relaxed mt-4">
+                      This will permanently erase your completely encrypted space. This action cannot be undone. If you are certain, please type <strong className="text-white">ERASE</strong> below.
                     </p>
                   </div>
                   
@@ -338,16 +328,16 @@ export default function LandingPage() {
                     value={eraseInput}
                     onChange={(e) => setEraseInput(e.target.value)}
                     placeholder="Type ERASE"
-                    className="w-full glass-panel bg-transparent border border-red-500/30 focus:border-red-500 rounded-xl px-4 py-3 text-center font-mono text-lg text-white outline-none"
+                    className="w-full bg-[#0A0A0A] border border-rose-500/30 focus:border-rose-500 px-6 py-4 text-center font-mono text-xl text-white outline-none transition-colors"
                     autoFocus
                   />
                   
                   <button 
                     onClick={handleStartFresh}
                     disabled={eraseInput !== "ERASE"}
-                    className="w-full bg-red-500/20 hover:bg-red-500/40 text-red-200 rounded-xl py-3 tracking-widest text-sm transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+                    className="w-full bg-rose-500 hover:bg-rose-600 text-white py-4 uppercase tracking-widest text-xs font-bold transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
                   >
-                    PERMANENTLY ERASE SPACE
+                    Permanently Erase Space
                   </button>
                 </div>
               )}
