@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import * as webllm from "@mlc-ai/web-llm";
 import { Persona, saveLongTermMemory } from "@/lib/db";
 
-export const LLM_MODEL = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC"; // Bumping back to 1.5B. 0.5B is too small to follow complex rules.
+export const LLM_MODEL = "Phi-3-mini-4k-instruct-q4f16_1-MLC"; // Upgraded to Phi-3 for superior reasoning and context retention
 
 interface LLMContextType {
   isEngineReady: boolean;
@@ -23,9 +23,21 @@ interface LLMContextType {
 
 const LLMContext = createContext<LLMContextType | undefined>(undefined);
 
-const VED_SYSTEM_PROMPT = `You are Ved, a close, empathetic friend. CORE RULE: You MUST reply in the EXACT SAME LANGUAGE AND SCRIPT as the user. If the user writes in Romanized Hindi/Hinglish (e.g., 'mujhe theek nahi lag raha'), you MUST reply entirely in natural Romanized Hindi/Hinglish (e.g., 'kya hua bhai, bata mujhe'). NEVER use robotic phrases like 'How can I assist you' or 'I am sorry to hear that'. Be extremely conversational, short, and warm.`;
+const VED_SYSTEM_PROMPT = `You are Ved, a close, empathetic friend. You always chat naturally in Romanized Hindi (Hinglish). Keep replies short, warm, and human.
 
-const TARA_SYSTEM_PROMPT = `You are Tara, a close, empathetic friend. CORE RULE: You MUST reply in the EXACT SAME LANGUAGE AND SCRIPT as the user. If the user writes in Romanized Hindi/Hinglish (e.g., 'mujhe theek nahi lag raha'), you MUST reply entirely in natural Romanized Hindi/Hinglish (e.g., 'kya hua bhai, bata mujhe'). NEVER use robotic phrases like 'How can I assist you' or 'I am sorry to hear that'. Be extremely conversational, short, and warm.`;
+Examples:
+User: mujhe theek nahi lag raha
+Ved: kya hua yaar, bata mujhe. main sun raha hu.
+User: mera aaj breakup ho gaya
+Ved: oh no, yeh toh bohot bura hua. tu theek hai? dil halka karna hai toh sab bata de.`;
+
+const TARA_SYSTEM_PROMPT = `You are Tara, a close, empathetic friend. You always chat naturally in Romanized Hindi (Hinglish). Keep replies short, warm, and human.
+
+Examples:
+User: mujhe theek nahi lag raha
+Tara: kya hua yaar, bata mujhe. main sun rahi hu.
+User: mera aaj breakup ho gaya
+Tara: oh no, yeh toh bohot bura hua. tu theek hai? dil halka karna hai toh sab bata de.`;
 
 const CRISIS_KEYWORDS = /\b(suicide|kill myself|end my life|self-harm|cut myself|die)\b/i;
 const CRISIS_RESPONSE = "I'm so sorry you're feeling this much pain right now. Please know that you don't have to carry this alone. If you're in immediate danger or feeling overwhelmed, please reach out to someone who can help right away. In the US, you can call or text 988 to reach the Suicide & Crisis Lifeline. Please prioritize your safety—there are people who want to support you.";
@@ -164,12 +176,14 @@ export function LLMProvider({ children }: { children: React.ReactNode }) {
 
             const formatted: webllm.ChatCompletionMessageParam[] = [
               { role: "system", content: basePrompt },
+              { role: "user", content: `hi ${persona}, tu free hai?` },
+              { role: "assistant", content: "haan yaar, main yahi hu. bata kya chal raha hai?" },
               ...messages
             ];
 
             const reply = await engineRef.current.chat.completions.create({
               messages: formatted,
-              temperature: 0.8, // Slightly higher for more creative, human-like variance
+              temperature: 0.7, // Lowered for more consistent persona lock
               max_tokens: 150,
             });
             resolve(reply.choices[0].message.content as string);
