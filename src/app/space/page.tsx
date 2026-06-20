@@ -8,7 +8,8 @@ import { CompanionOrb } from "@/components/CompanionOrb";
 import { MessageList } from "@/components/MessageList";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Settings, Power, Plus, ArrowUp } from "lucide-react";
+import { Send, Settings, Power, Plus, ArrowUp, Mic, Square } from "lucide-react";
+import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { Instrument_Serif } from "next/font/google";
 
 const instrumentSerif = Instrument_Serif({ weight: "400", style: "italic", subsets: ["latin"] });
@@ -50,6 +51,52 @@ export default function ChatScreen() {
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  
+  const [isWhisperReady, setIsWhisperReady] = useState(false);
+  const [whisperProgress, setWhisperProgress] = useState("");
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const whisperWorker = useRef<Worker | null>(null);
+  const { isRecording, startRecording, stopRecording } = useAudioRecorder();
+
+  useEffect(() => {
+    whisperWorker.current = new Worker(new URL('@/workers/whisper.worker.ts', import.meta.url), {
+      type: 'module'
+    });
+
+    whisperWorker.current.onmessage = (event) => {
+      const { type, progress, text, error } = event.data;
+      if (type === 'PROGRESS' && progress?.progress) {
+        setWhisperProgress(`Loading Whisper... ${Math.round(progress.progress)}%`);
+      } else if (type === 'READY') {
+        setIsWhisperReady(true);
+        setWhisperProgress("");
+      } else if (type === 'RESULT') {
+        setInputValue(prev => prev + (prev ? " " : "") + text.trim());
+        setIsTranscribing(false);
+      } else if (type === 'ERROR') {
+        console.error("Whisper error:", error);
+        setIsTranscribing(false);
+      }
+    };
+
+    whisperWorker.current.postMessage({ type: 'INIT' });
+
+    return () => {
+      whisperWorker.current?.terminate();
+    };
+  }, []);
+
+  const handleMicToggle = async () => {
+    if (isRecording) {
+      const audioData = await stopRecording();
+      if (audioData) {
+        setIsTranscribing(true);
+        whisperWorker.current?.postMessage({ type: 'TRANSCRIBE', audio: audioData });
+      }
+    } else {
+      await startRecording();
+    }
+  };
   const [messages, setMessages] = useState<DecryptedMessage[]>([]);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   
@@ -383,11 +430,11 @@ export default function ChatScreen() {
         ) : (
           <>
             <form onSubmit={handleSend} className="relative w-full px-4">
-              <div className="relative flex items-center bg-[#141414] rounded-full border border-white/5 shadow-2xl px-4 py-3 group focus-within:border-white/10 transition-colors">
+              <div className="relative flex items-center bg-[#111111] rounded-full px-4 py-3 group">
                 <button 
                   type="button" 
                   onClick={() => togglePersona()}
-                  className={`text-[10px] uppercase tracking-widest font-bold transition-colors px-2 mr-2 border-r border-white/10 pr-4 ${activePersona === 'ved' ? 'text-white/70 hover:text-white' : 'text-white/70 hover:text-white'}`}
+                  className={`text-[10px] uppercase tracking-widest font-bold transition-colors px-2 mr-2 border-r border-[#333333] pr-4 ${activePersona === 'ved' ? 'text-white/70 hover:text-white' : 'text-white/70 hover:text-white'}`}
                   title={`Switch to ${activePersona === 'ved' ? 'Tara' : 'Ved'}`}
                 >
                   {activePersona}
@@ -399,17 +446,42 @@ export default function ChatScreen() {
                     setInputValue(e.target.value);
                     markUserActivity();
                   }}
-                  placeholder={isEngineReady ? "Share what's on your mind..." : "Engine is initializing..."}
-                  disabled={!isEngineReady || !!waitingMessage}
-                  className="flex-1 bg-transparent border-none outline-none px-4 text-sm text-foreground/90 placeholder:text-white/20 font-light disabled:opacity-50"
+                  placeholder={
+                    !isEngineReady ? "Engine is initializing..." : 
+                    isTranscribing ? "Transcribing..." : 
+                    whisperProgress ? whisperProgress : 
+                    isRecording ? "Listening..." : "Share what's on your mind..."
+                  }
+                  disabled={!isEngineReady || !!waitingMessage || isRecording || isTranscribing}
+                  className="flex-1 bg-transparent border-none outline-none px-4 text-sm text-foreground/90 placeholder:text-white/30 font-light disabled:opacity-50"
                 />
+                
+                {/* Voice Mic Button (Tactile Minimalism) */}
+                <button
+                  type="button"
+                  onClick={handleMicToggle}
+                  disabled={!isWhisperReady || isTranscribing || !isEngineReady}
+                  className={`mr-2 p-2 rounded-full flex items-center justify-center transition-all ${
+                    isRecording ? "text-rose-500" : "text-white/40 hover:text-white"
+                  } disabled:opacity-30`}
+                >
+                  {isRecording ? (
+                    <div className="relative flex items-center justify-center w-4 h-4">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                    </div>
+                  ) : (
+                    <Mic className="w-4 h-4" />
+                  )}
+                </button>
+
                 <button
                   type="submit"
-                  disabled={!inputValue.trim() || isProcessing || !isEngineReady || !!waitingMessage}
+                  disabled={!inputValue.trim() || isProcessing || !isEngineReady || !!waitingMessage || isRecording || isTranscribing}
                   className={`p-2 rounded-full transition-all duration-300 ${
-                    inputValue.trim() && !isProcessing && isEngineReady && !waitingMessage
-                      ? "bg-white/10 text-white hover:bg-white/20"
-                      : "bg-white/5 text-white/20"
+                    inputValue.trim() && !isProcessing && isEngineReady && !waitingMessage && !isRecording && !isTranscribing
+                      ? "bg-white text-black hover:bg-neutral-200"
+                      : "bg-[#222222] text-white/20"
                   }`}
                 >
                   <ArrowUp className="w-4 h-4" />
