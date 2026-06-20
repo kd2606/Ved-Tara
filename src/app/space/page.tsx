@@ -8,8 +8,9 @@ import { CompanionOrb } from "@/components/CompanionOrb";
 import { MessageList } from "@/components/MessageList";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Settings, Power, Plus, ArrowUp, Mic, Square } from "lucide-react";
+import { Send, Settings, Power, Plus, ArrowUp, Mic, Square, Volume2, VolumeX } from "lucide-react";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
+import { useTTS } from "@/hooks/useTTS";
 import { Instrument_Serif } from "next/font/google";
 
 const instrumentSerif = Instrument_Serif({ weight: "400", style: "italic", subsets: ["latin"] });
@@ -57,6 +58,14 @@ export default function ChatScreen() {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const whisperWorker = useRef<Worker | null>(null);
   const { isRecording, startRecording, stopRecording } = useAudioRecorder();
+  
+  const { isSpeaking, speak, cancel } = useTTS();
+  const [isVoiceModeEnabled, setIsVoiceModeEnabled] = useState(false);
+  const isVoiceModeEnabledRef = useRef(false);
+
+  useEffect(() => {
+    isVoiceModeEnabledRef.current = isVoiceModeEnabled;
+  }, [isVoiceModeEnabled]);
 
   useEffect(() => {
     whisperWorker.current = new Worker(new URL('@/workers/whisper.worker.ts', import.meta.url), {
@@ -87,6 +96,7 @@ export default function ChatScreen() {
   }, []);
 
   const handleMicToggle = async () => {
+    cancel(); // Interrupt TTS when user starts speaking
     if (isRecording) {
       const audioData = await stopRecording();
       if (audioData) {
@@ -195,6 +205,10 @@ export default function ChatScreen() {
         timestamp: Date.now(),
       });
 
+      if (isVoiceModeEnabledRef.current) {
+        speak(replyText);
+      }
+
       import("@/lib/memory").then(({ generateEmbedding }) => {
         generateEmbedding(replyText).catch(console.error);
       });
@@ -221,6 +235,7 @@ export default function ChatScreen() {
     const text = inputValue.trim();
     if (!text || isProcessing || !isEngineReady) return;
     setInputValue("");
+    cancel(); // Interrupt TTS when user sends a message
     
     // Crisis Keyword Interceptor (Bypasses LLM entirely)
     const crisisRegex = /\b(suicide|kill myself|end it|die|mar jana|khatam kar|harm myself|sui-cide|suicid)\b/i;
@@ -328,6 +343,13 @@ export default function ChatScreen() {
         </nav>
 
         <div className="flex items-center gap-6">
+          <button
+            onClick={() => setIsVoiceModeEnabled(!isVoiceModeEnabled)}
+            className={`flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold transition-colors ${isVoiceModeEnabled ? 'text-white' : 'text-white/40 hover:text-white'}`}
+          >
+            {isVoiceModeEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
+            Voice
+          </button>
           <button 
             onClick={() => setIsResetModalOpen(true)}
             className="text-[10px] uppercase tracking-widest font-bold text-white/40 hover:text-white transition-colors"
